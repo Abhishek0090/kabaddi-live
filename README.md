@@ -13,6 +13,21 @@ A match admin scores a kabaddi match from a tablet or phone, and every tap shows
 
 Every match is a room. The admin who creates it is the only one who can score it. The app is installable as a PWA, and the control panel keeps working without a network: taps queue on the device and sync in order when the connection returns.
 
+## Try it without Supabase (mock mode)
+
+Add this to `.env` or `.env.local` and restart `npm run dev`:
+
+```bash
+NEXT_PUBLIC_MOCK=true
+```
+
+The app then runs on in-memory demo data:
+
+- One demo match plays itself on a loop (8-minute halves), so the home page and scoreboards always have something live.
+- Log in as the demo admin (`demo@kabaddi.app` / `kabaddi123`, or the one-click button on `/login`). The demo admin has rooms to score, and registering new admins works too.
+- Scoreboards and the overlay poll every second instead of using Supabase Realtime, so a tap on the control panel still shows on other devices on your network.
+- Everything resets when the server restarts. Mock login is not secure, so never turn this on for a real deployment.
+
 ## 1. Set up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com) (Free plan).
@@ -38,8 +53,8 @@ Needs Node.js 20.9 or newer.
 1. Copy `.env.example` to `.env.local` and fill in both values:
 
    ```bash
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   SUPABASE_URL=https://your-project-ref.supabase.co
+   SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
 
 2. Install and run:
@@ -66,7 +81,7 @@ To try the control panel on a tablet on the same Wi-Fi, open `http://<your-compu
 
 1. Push the repo to GitHub.
 2. In Vercel: **Add New > Project**, import the repo, keep the Next.js defaults.
-3. Under **Environment Variables**, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for all environments.
+3. Under **Environment Variables**, add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` for all environments. They are read at build time, so redeploy after changing them.
 4. Deploy. Then put the Vercel URL into Supabase's **Site URL** and **Redirect URLs** (section 1, step 4).
 
 Vercel Hobby is for non-commercial use only. If your matches carry sponsors or paid streams, use a paid plan.
@@ -117,6 +132,10 @@ src/proxy.ts             session refresh and /scorer login guard
 supabase/schema.sql      tables, row level security, RPCs, realtime
 public/sw.js             service worker (offline pages and assets)
 ```
+
+## Developer docs
+
+How the code works, and step-by-step recipes for changing it, are in [docs/](docs/README.md).
 
 ## Sharing the code to another machine
 

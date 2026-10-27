@@ -10,7 +10,10 @@ const text: Record<MatchStatus, string> = { live: "Live", scheduled: "Upcoming",
 
 export function StatusBadge({ status }: { status: MatchStatus }) {
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${styles[status]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${styles[status]}`}
+    >
+      {status === "live" && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden />}
       {text[status]}
     </span>
   );

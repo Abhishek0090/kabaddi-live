@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { insertRoom } from "@/lib/adminData";
 import { requireAdmin } from "@/lib/auth";
-import { createInitialState } from "@/lib/kabaddi";
 import { SETTING_FIELDS, parseSettings, parseTeamName } from "@/lib/settings";
 
 export type CreateRoomState = { error?: string };
@@ -25,20 +25,15 @@ export async function createRoom(_prev: CreateRoomState, formData: FormData): Pr
   const settings = parseSettings(values);
   if (!settings.ok) return { error: settings.error };
 
-  const { supabase, userId } = await requireAdmin("/scorer");
-  const { data, error } = await supabase
-    .from("matches")
-    .insert({
-      team_a: teamA.name,
-      team_b: teamB.name,
-      scheduled_at: scheduled.toISOString(),
-      settings: settings.settings,
-      state: createInitialState(teamA.name, teamB.name, settings.settings),
-      scorer_id: userId,
-    })
-    .select("id")
-    .single();
-  if (error) return { error: `Could not create the room: ${error.message}` };
+  const { userId } = await requireAdmin("/scorer");
+  const result = await insertRoom({
+    teamA: teamA.name,
+    teamB: teamB.name,
+    scheduledAt: scheduled.toISOString(),
+    settings: settings.settings,
+    userId,
+  });
+  if ("error" in result) return { error: `Could not create the room: ${result.error}` };
 
-  redirect(`/scorer/${data.id}`);
+  redirect(`/scorer/${result.id}`);
 }

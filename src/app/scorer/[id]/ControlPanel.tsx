@@ -11,6 +11,8 @@ import { matchView } from "@/lib/display";
 import { eventToRow } from "@/lib/events";
 import { eventLabel, formatClock, formatSeconds } from "@/lib/format";
 import { createInitialState, other } from "@/lib/kabaddi";
+import { mockRecordEventAction, mockUndoAction } from "@/lib/mock/actions";
+import { MOCK } from "@/lib/mode";
 import type { MatchEvent, Team } from "@/lib/kabaddi.types";
 import { ScorerStore, type EventInput } from "@/lib/scorerStore";
 import { serverNow } from "@/lib/serverTime";
@@ -20,6 +22,16 @@ import { useNow } from "@/lib/useNow";
 import { useServerClock } from "@/lib/useServerClock";
 
 function makeTransport(matchId: string): Transport {
+  if (MOCK) {
+    return async (op) => {
+      const result =
+        op.kind === "event"
+          ? await mockRecordEventAction(matchId, op.seq, op.event, op.state)
+          : await mockUndoAction(matchId, op.seq, op.state);
+      if (typeof result === "object") throw new ConflictError(result.message);
+      return result;
+    };
+  }
   let client: ReturnType<typeof createClient> | null = null;
   return async (op) => {
     client ??= createClient();

@@ -2,6 +2,9 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { setMockSession } from "@/lib/mock/session";
+import { DEMO_ADMIN, mockSignIn, mockSignUp } from "@/lib/mock/store";
+import { MOCK } from "@/lib/mode";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = { error?: string; message?: string };
@@ -23,6 +26,13 @@ export async function signIn(_prev: AuthFormState, formData: FormData): Promise<
   const { email, password } = readCredentials(formData);
   if (!email || !password) return { error: "Enter your email and password." };
 
+  if (MOCK) {
+    const userId = mockSignIn(email, password);
+    if (!userId) return { error: "Wrong email or password. Try the demo account below." };
+    await setMockSession(userId);
+    redirect(safeNext(formData.get("next")));
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
@@ -39,6 +49,13 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   if (!email || !password) return { error: "Enter an email and a password." };
   if (password.length < 8) return { error: "Use a password of at least 8 characters." };
   if (password !== confirm) return { error: "The passwords don't match." };
+
+  if (MOCK) {
+    const result = mockSignUp(email, password);
+    if ("error" in result) return { error: result.error };
+    await setMockSession(result.id);
+    redirect("/scorer");
+  }
 
   const origin = (await headers()).get("origin") ?? "";
   const supabase = await createClient();
@@ -60,7 +77,19 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
 }
 
 export async function signOut(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  if (MOCK) {
+    await setMockSession(null);
+  } else {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
   redirect("/login");
+}
+
+/** Mock mode only: one-click login as the demo admin. */
+export async function signInDemo(formData: FormData): Promise<void> {
+  if (!MOCK) redirect("/login");
+  const userId = mockSignIn(DEMO_ADMIN.email, DEMO_ADMIN.password);
+  if (userId) await setMockSession(userId);
+  redirect(safeNext(formData.get("next")));
 }

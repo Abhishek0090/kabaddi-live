@@ -1,24 +1,30 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { AuthForm } from "@/components/AuthForm";
-import { signIn } from "./actions";
+import { AuthShell } from "@/components/AuthShell";
+import { btn } from "@/components/ui";
+import { DEMO_ADMIN } from "@/lib/mock/store";
+import { MOCK } from "@/lib/mode";
+import { signIn, signInDemo } from "./actions";
 
 export const metadata: Metadata = { title: "Admin login", robots: { index: false } };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next, error } = await searchParams;
+  const nextPath = typeof next === "string" ? next : undefined;
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-10">
-      <Link href="/" className="text-sm font-semibold text-zinc-500 hover:underline">
-        Kabaddi Live Score
-      </Link>
-      <h1 className="text-3xl font-black">Admin login</h1>
-      <AuthForm
-        mode="login"
-        action={signIn}
-        next={typeof next === "string" ? next : undefined}
-        initialError={typeof error === "string" ? error : undefined}
-      />
-    </main>
+    <AuthShell title="Admin login" subtitle="Log in to score your match rooms.">
+      {MOCK && (
+        <form action={signInDemo} className="flex flex-col gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
+          {nextPath && <input type="hidden" name="next" value={nextPath} />}
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+            Demo mode. Use <span className="font-mono">{DEMO_ADMIN.email}</span> /{" "}
+            <span className="font-mono">{DEMO_ADMIN.password}</span>, or:
+          </p>
+          <button className={btn.dark}>Log in as demo admin</button>
+        </form>
+      )}
+      <AuthForm mode="login" action={signIn} next={nextPath} initialError={typeof error === "string" ? error : undefined} />
+    </AuthShell>
   );
 }

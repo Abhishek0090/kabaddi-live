@@ -1,6 +1,6 @@
 # Kabaddi Live Score - Build Plan
 
-Status: approved 2026-10-27. Phases 0-1 done.
+Status: approved 2026-10-27. All phases (0-8) built. Remaining checks need a live Supabase project (see README.md).
 
 ## 1. Stack decisions
 
@@ -258,8 +258,11 @@ Anything not in the brief: player rosters and names, stats, multiple scorers per
 - **Q1 Players:** counts only. `outQueue` holds anonymous slot numbers so revival order is kept and tested.
 - **Q2 Revival:** RAID_TIMEOUT and an empty do-or-die raid both work like TACKLE: defending team +1 and revives 1. No super tackle on these.
 - **Q3 Timeout end:** the timeout clears automatically (the scorer page sends RESUME at `endsAt`). Clocks stay paused until the scorer taps Start clock or Start raid.
-- **Q6 Env var:** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_PUBLISHABLE_KEY` as the GitHub secret.
+- **Q6 Env var:** renamed on 2026-10-27 to `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (no `NEXT_PUBLIC_` prefix). `next.config.ts` `env` passes them to the browser. Same names as the GitHub secrets.
 - **Added after the brief:** big scoreboard (4.5) and PWA (4.6).
+- **Admins and rooms (added 2026-10-27):** anyone can register at `/register` and becomes an admin. Every match is a room owned by the admin who created it; only that admin can score it. Sign-ups stay enabled in Supabase (this replaces "disable sign-ups" from 3.3). URLs keep the brief's `/scorer` paths; the UI says "Admin" and "rooms". Email confirmation is optional (README section 1).
+- **Mock mode (added 2026-10-27):** `NEXT_PUBLIC_MOCK=true` runs the app on an in-memory store (`src/lib/mock/`) with a self-playing demo match, a demo admin, and 1-second polling instead of Realtime. Home page redesigned with a hero and a live featured match.
+- **Share scripts (phase 8):** standalone `npm run share` in `scripts/share.mjs`, runtime in `scripts/share-runtime.mjs`.
 
 ### Still open (the recommended option is used unless you say otherwise)
 
